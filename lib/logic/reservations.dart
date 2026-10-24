@@ -175,4 +175,32 @@ class ReservationStore {
     const last = ['Johnson', 'Smith', 'Garcia', 'Williams', 'Brown', 'Davis', 'Martinez', 'Wilson', 'Anderson', 'Thomas'];
     const reasons = ['Sore Throat', 'Flu Symptoms', 'Minor Laceration', 'Sprained Ankle', 'Ear Infection', 'Rash', 'Back Pain', 'Allergic Reaction', 'UTI Symptoms', 'Headache'];
     const insurances = ['Blue Cross Blue Shield', 'UnitedHealthcare', 'Aetna', 'Cigna', 'Humana', 'No Insurance', 'Medicare', 'Medicaid (Nevada)', 'Kaiser Permanente', 'Aetna'];
-    const statuses = ['pending', 'confirmed',
+    const statuses = ['pending', 'confirmed', 'confirmed', 'arrived', 'in-room', 'completed', 'completed', 'cancelled', 'no-show', 'pending'];
+    const pharmacies = ['CVS', 'Walgreens', 'Rite Aid'];
+
+    final random = Random();
+    final start = DateTime(now.year, now.month, now.day, 7);
+    final list = <Reservation>[];
+
+    for (var i = 0; i < 10; i++) {
+      final createdAt = start.add(Duration(minutes: i * 70 + random.nextInt(30)));
+      list.add(Reservation(
+        code: newConfirmationCode(),
+        facilityName: 'QuickMed Urgent Care',
+        patientName: '${first[i]} ${last[i]}',
+        phone: '(702) 555-01${10 + i}',
+        reason: reasons[i],
+        createdAt: createdAt,
+        arrival: createdAt.add(Duration(minutes: 10 + random.nextInt(30))),
+        insurance: insurances[i],
+        allergies: i % 3 == 0 ? 'Penicillin' : (i % 4 == 0 ? 'Sulfa, Latex' : 'None known'),
+        pharmacy: pharmacies[i % 3],
+        intakeComplete: i % 3 != 2,
+        isDemo: true,
+        status: statuses[i],
+        notes: i == 4 ? 'Patient called ahead, running 5 min late' : '',
+      ));
+    }
+    return list;
+  }
+}
