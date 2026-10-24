@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/facility.dart';
 import '../widgets/facility_card.dart';
+import '../widgets/facility_detail_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,7 +57,10 @@ class _HomeScreenState extends State<HomeScreen> {
         if (sorted.isEmpty)
           const Text('No facilities match this filter. Try a different one.'),
         for (var i = 0; i < sorted.length; i++)
-          FacilityCard(facility: sorted[i], rank: i + 1),
+          GestureDetector(
+            onTap: () => showFacilityDetail(context, sorted[i]),
+            child: FacilityCard(facility: sorted[i], rank: i + 1),
+          ),
       ],
     );
   }
