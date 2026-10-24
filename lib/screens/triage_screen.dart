@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import '../logic/triage.dart';
-import '../models/facility.dart';
+import '../logic/live_facilities.dart';
 import '../widgets/facility_detail_sheet.dart';
+import '../widgets/telehealth_sheet.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../logic/share_route.dart';
+import '../widgets/reserve_sheet.dart';
 
 class TriageScreen extends StatefulWidget {
   final String? initialQuery;
@@ -61,7 +65,7 @@ class _TriageScreenState extends State<TriageScreen> {
         flags: _flags,
         severity: _severity!,
         duration: _duration!,
-        facilities: sampleFacilities,
+        facilities: liveFacilities.all,
       );
       _step = 5;
     });
@@ -247,8 +251,10 @@ class _TriageScreenState extends State<TriageScreen> {
     );
   }
 
-  Widget _resultView() {
+    Widget _resultView() {
     final r = _result!;
+    final f = r.facility;
+
     const colors = {
       'er': Color(0xFFFF3B5C),
       'uc': Color(0xFFFFB020),
@@ -259,6 +265,29 @@ class _TriageScreenState extends State<TriageScreen> {
       'uc': Icons.medical_services,
       'home': Icons.home,
     };
+
+    void toast(String message) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+
+    Widget stat(String value, String label, Color color) {
+      return Expanded(
+        child: Column(
+          children: [
+            Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: color)),
+            Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+
+    Widget nextAction(IconData icon, String label, VoidCallback onTap) {
+      return OutlinedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, size: 18),
+        label: Text(label),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -296,24 +325,110 @@ class _TriageScreenState extends State<TriageScreen> {
           ),
         if (r.showTelehealth) ...[
           const SizedBox(height: 12),
-          const Card(
-            color: Color(0xFFF5F0FF),
+          Card(
+            color: const Color(0xFFF5F0FF),
             child: ListTile(
-              leading: Icon(Icons.videocam, color: Color(0xFF805AD5)),
-              title: Text('Skip the wait: see a provider by video'),
-              subtitle: Text('Telehealth is coming in a later lesson.'),
+              onTap: () => showTelehealthSheet(context),
+              leading: const Icon(Icons.videocam, color: Color(0xFF805AD5)),
+              title: const Text('Skip the wait: see a provider by video'),
+              subtitle: const Text('Average wait under 5 minutes. Tap to start.'),
+              trailing: const Icon(Icons.chevron_right),
             ),
           ),
         ],
-        if (r.facility != null) ...[
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: () => showFacilityDetail(context, r.facility!),
-            icon: const Icon(Icons.info_outline),
-            label: Text('See ${r.facility!.name}'),
+        if (f != null) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7FAFC),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                const Text('Recommended Facility', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                const SizedBox(height: 4),
+                Text(
+                  f.name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                ),
+                Text(
+                  '${f.typeName} · ${f.isOpen ? 'Open Now' : 'Closed'}',
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    stat(
+                      '${f.wait}m',
+                      'Wait',
+                      f.wait <= 15
+                          ? const Color(0xFF00C48C)
+                          : f.wait <= 35
+                              ? const Color(0xFFFFB020)
+                              : const Color(0xFFFF3B5C),
+                    ),
+                    stat('${f.drive}m', 'Drive', const Color(0xFF0066FF)),
+                    stat('${f.miles} mi', 'Away', const Color(0xFF0A1628)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(backgroundColor: const Color(0xFF00C48C)),
+                        onPressed: () => launchUrl(
+                          Uri.parse(directionsUrl(f)),
+                          mode: LaunchMode.externalApplication,
+                        ),
+                        icon: const Icon(Icons.directions),
+                        label: const Text('Navigate'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: f.isOpen ? () => showReserveSheet(context, f) : null,
+                        icon: const Icon(Icons.event_available),
+                        label: Text(f.isOpen ? 'Reserve My Spot' : 'Closed'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: () => showFacilityDetail(context, f),
+                  icon: const Icon(Icons.info_outline),
+                  label: const Text('Details'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text("What's Next", style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              nextAction(Icons.account_balance_wallet, 'Save to Wallet',
+                  () => toast('Demo: saved to your wallet')),
+              Builder(
+                builder: (buttonContext) => nextAction(
+                  Icons.share,
+                  'Share Route',
+                  () => shareRoute(buttonContext, f),
+                ),
+              ),
+              nextAction(Icons.send, 'Send ETA', () => toast('Demo: ETA sent to ${f.name}')),
+              nextAction(Icons.notifications, 'Set Reminder',
+                  () => toast('Demo: reminder set for 30 min before')),
+            ],
           ),
         ],
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         OutlinedButton.icon(
           onPressed: _reset,
           icon: const Icon(Icons.refresh),

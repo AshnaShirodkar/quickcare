@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../logic/share_route.dart';
 import '../models/facility.dart';
 import 'reserve_sheet.dart';
 
@@ -17,10 +18,7 @@ class FacilityDetailSheet extends StatelessWidget {
   const FacilityDetailSheet({super.key, required this.facility});
 
   Future<void> _openDirections() async {
-    final url = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=${Uri.encodeComponent(facility.name)}',
-    );
-    await launchUrl(url, mode: LaunchMode.externalApplication);
+    await launchUrl(Uri.parse(directionsUrl(facility)), mode: LaunchMode.externalApplication);
   }
 
   Widget _stat(String value, String label) {
@@ -50,6 +48,13 @@ class FacilityDetailSheet extends StatelessWidget {
             f.isOpen ? 'Open Now' : 'Closed',
             style: TextStyle(color: f.isOpen ? Colors.green : Colors.red),
           ),
+          if (f.insurance.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Accepts: ${f.insurance.join(', ')}',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
           const SizedBox(height: 20),
           Row(
             children: [
@@ -75,6 +80,14 @@ class FacilityDetailSheet extends StatelessWidget {
                   onPressed: f.isOpen ? () => showReserveSheet(context, f) : null,
                   icon: const Icon(Icons.event_available),
                   label: Text(f.isOpen ? 'Reserve' : 'Closed'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Builder(
+                builder: (buttonContext) => IconButton.outlined(
+                  tooltip: 'Share route',
+                  onPressed: () => shareRoute(buttonContext, f),
+                  icon: const Icon(Icons.share),
                 ),
               ),
             ],
