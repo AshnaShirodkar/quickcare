@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'screens/home_screen.dart';
  
   void main() {
     runApp(const QuickCareApp());
@@ -38,7 +39,7 @@ import 'package:google_fonts/google_fonts.dart';
    int _tab = 0;
 
    final _pages = const [
-     Center(child: Text('Home')),
+     HomeScreen(),
      Center(child: Text('Symptom Checker')),
      Center(child: Text('Map')),
      Center(child: Text('Best Time')),
