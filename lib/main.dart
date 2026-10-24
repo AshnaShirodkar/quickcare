@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
  
   void main() {
     runApp(const QuickCareApp());
@@ -15,6 +16,7 @@ import 'package:flutter/material.dart';
        theme: ThemeData(
          colorSchemeSeed: const Color(0xFF0066FF),
          scaffoldBackgroundColor: const Color(0xFFF7FAFC),
+         fontFamily: GoogleFonts.inter().fontFamily ,
          appBarTheme: const AppBarTheme(
          backgroundColor: Color(0xFF0066FF),
          foregroundColor: Colors.white,
@@ -62,4 +64,3 @@ import 'package:flutter/material.dart';
      );
    }
  }
-
