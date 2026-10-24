@@ -2,6 +2,30 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const reservationStatuses = ['pending', 'confirmed', 'arrived', 'in-room', 'completed'];
+
+String statusLabel(String status) {
+  if (status == 'in-room') return 'In Room';
+  if (status == 'no-show') return 'No-Show';
+  if (status.isEmpty) return '';
+  return status[0].toUpperCase() + status.substring(1);
+}
+
+List<(String, String)> nextStepsFor(String status) {
+  switch (status) {
+    case 'pending':
+      return [('Confirm', 'confirmed'), ('Cancel', 'cancelled')];
+    case 'confirmed':
+      return [('Arrived', 'arrived'), ('No-Show', 'no-show'), ('Cancel', 'cancelled')];
+    case 'arrived':
+      return [('To Room', 'in-room')];
+    case 'in-room':
+      return [('Complete', 'completed')];
+    default:
+      return [];
+  }
+}
+
 class Reservation {
   final String code;
   final String facilityName;
@@ -10,7 +34,13 @@ class Reservation {
   final String reason;
   final DateTime createdAt;
   final DateTime arrival;
+  final String insurance;
+  final String allergies;
+  final String pharmacy;
+  final bool intakeComplete;
+  final bool isDemo;
   String status;
+  String notes;
 
   Reservation({
     required this.code,
@@ -20,7 +50,13 @@ class Reservation {
     required this.reason,
     required this.createdAt,
     required this.arrival,
-    this.status = 'confirmed',
+    this.insurance = '',
+    this.allergies = '',
+    this.pharmacy = '',
+    this.intakeComplete = true,
+    this.isDemo = false,
+    this.status = 'pending',
+    this.notes = '',
   });
 
   Map<String, dynamic> toJson() => {
@@ -31,7 +67,13 @@ class Reservation {
         'visitReason': reason,
         'createdAt': createdAt.toIso8601String(),
         'arrival': arrival.toIso8601String(),
+        'insurance': insurance,
+        'allergies': allergies,
+        'pharmacy': pharmacy,
+        'intakeComplete': intakeComplete,
+        'isDemo': isDemo,
         'status': status,
+        'notes': notes,
       };
 
   factory Reservation.fromJson(Map<String, dynamic> json) => Reservation(
@@ -42,7 +84,13 @@ class Reservation {
         reason: json['visitReason'] as String? ?? 'General Visit',
         createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
         arrival: DateTime.tryParse(json['arrival'] as String? ?? '') ?? DateTime.now(),
-        status: json['status'] as String? ?? 'confirmed',
+        insurance: json['insurance'] is String ? json['insurance'] as String : '',
+        allergies: json['allergies'] as String? ?? '',
+        pharmacy: json['pharmacy'] as String? ?? '',
+        intakeComplete: json['intakeComplete'] as bool? ?? true,
+        isDemo: json['isDemo'] as bool? ?? false,
+        status: json['status'] as String? ?? 'pending',
+        notes: json['notes'] as String? ?? '',
       );
 }
 
@@ -65,8 +113,13 @@ String formatDate(DateTime t) {
   return '${months[t.month - 1]} ${t.day}, ${t.year}';
 }
 
+bool isSameDay(DateTime a, DateTime b) {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
 class ReservationStore {
   static const _key = 'qc_reservations';
+  static const _seededDayKey = 'qc_seeded_day';
 
   static Future<List<Reservation>> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -86,11 +139,40 @@ class ReservationStore {
     return reservation;
   }
 
-  static Future<void> cancel(String code) async {
+  static Future<void> updateStatus(String code, String status) async {
     final all = await load();
     for (final r in all) {
-      if (r.code == code) r.status = 'cancelled';
+      if (r.code == code) r.status = status;
     }
     await saveAll(all);
   }
-}
+
+  static Future<void> cancel(String code) => updateStatus(code, 'cancelled');
+
+  static Future<void> saveNotes(String code, String notes) async {
+    final all = await load();
+    for (final r in all) {
+      if (r.code == code) r.notes = notes;
+    }
+    await saveAll(all);
+  }
+
+  static Future<void> seedDemoIfNeeded({bool force = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final today = '${now.year}-${now.month}-${now.day}';
+    if (!force && prefs.getString(_seededDayKey) == today) return;
+
+    final all = await load();
+    all.removeWhere((r) => r.isDemo);
+    all.addAll(_demoReservations(now));
+    await saveAll(all);
+    await prefs.setString(_seededDayKey, today);
+  }
+
+  static List<Reservation> _demoReservations(DateTime now) {
+    const first = ['Sarah', 'James', 'Maria', 'David', 'Emily', 'Robert', 'Linda', 'Michael', 'Jennifer', 'William'];
+    const last = ['Johnson', 'Smith', 'Garcia', 'Williams', 'Brown', 'Davis', 'Martinez', 'Wilson', 'Anderson', 'Thomas'];
+    const reasons = ['Sore Throat', 'Flu Symptoms', 'Minor Laceration', 'Sprained Ankle', 'Ear Infection', 'Rash', 'Back Pain', 'Allergic Reaction', 'UTI Symptoms', 'Headache'];
+    const insurances = ['Blue Cross Blue Shield', 'UnitedHealthcare', 'Aetna', 'Cigna', 'Humana', 'No Insurance', 'Medicare', 'Medicaid (Nevada)', 'Kaiser Permanente', 'Aetna'];
+    const statuses = ['pending', 'confirmed',

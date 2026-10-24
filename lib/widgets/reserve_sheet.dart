@@ -27,7 +27,8 @@ class _ReserveSheetState extends State<ReserveSheet> {
   final _reason = TextEditingController();
   late final DateTime _arrival = DateTime.now().add(Duration(minutes: widget.facility.drive));
   String? _error;
-  bool _saving = false;
+    bool _saving = false;
+  ProfileData? _profile;
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _ReserveSheetState extends State<ReserveSheet> {
 
   Future<void> _prefillName() async {
     final profile = await ProfileStore.load();
+        _profile = profile;
     final fullName = '${profile.firstName} ${profile.lastName}'.trim();
     if (mounted && _name.text.isEmpty) _name.text = fullName;
   }
@@ -75,7 +77,10 @@ class _ReserveSheetState extends State<ReserveSheet> {
       phone: _phone.text.trim(),
       reason: reason.isEmpty ? 'General Visit' : reason,
       createdAt: DateTime.now(),
-      arrival: _arrival,
+            arrival: _arrival,
+      insurance: _profile?.insurance ?? '',
+      allergies: _profile?.allergies ?? '',
+      pharmacy: _profile?.pharmacy ?? '',
     ));
 
     navigator.pop();
