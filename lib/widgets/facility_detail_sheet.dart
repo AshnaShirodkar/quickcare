@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/facility.dart';
+import 'reserve_sheet.dart';
 
 void showFacilityDetail(BuildContext context, Facility f) {
   showModalBottomSheet(
@@ -59,13 +60,24 @@ class FacilityDetailSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: _openDirections,
-              icon: const Icon(Icons.directions),
-              label: const Text('Get Directions'),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _openDirections,
+                  icon: const Icon(Icons.directions),
+                  label: const Text('Directions'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: f.isOpen ? () => showReserveSheet(context, f) : null,
+                  icon: const Icon(Icons.event_available),
+                  label: Text(f.isOpen ? 'Reserve' : 'Closed'),
+                ),
+              ),
+            ],
           ),
         ],
       ),

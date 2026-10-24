@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../logic/profile_store.dart';
+import '../widgets/my_reservations_card.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -319,6 +320,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
+                        const MyReservationsCard(),
             _section(
               icon: Icons.history,
               color: const Color(0xFFFFB020),
