@@ -19,7 +19,9 @@ class _MyReservationsCardState extends State<MyReservationsCard> {
 
   Future<void> _load() async {
     final all = await ReservationStore.load();
-    final active = all.where((r) => r.status != 'cancelled' && r.status != 'no-show').toList();
+    final active = all
+        .where((r) => !r.isDemo && r.status != 'cancelled' && r.status != 'no-show')
+        .toList();
     active.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     if (mounted) setState(() => _items = active);
   }
@@ -82,13 +84,15 @@ class _MyReservationsCardState extends State<MyReservationsCard> {
                   title: Text(r.facilityName, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(
                     '${r.reason} · ${formatDate(r.createdAt)}\n'
-                    'Arrive ${formatTime(r.arrival)} · ${r.code}',
+                    'Arrive ${formatTime(r.arrival)} · ${r.code} · ${statusLabel(r.status)}',
                   ),
                   isThreeLine: true,
-                  trailing: TextButton(
-                    onPressed: () => _cancel(r),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.red)),
-                  ),
+                  trailing: r.status == 'pending' || r.status == 'confirmed'
+                      ? TextButton(
+                          onPressed: () => _cancel(r),
+                          child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+                        )
+                      : null,
                 ),
           ],
         ),
