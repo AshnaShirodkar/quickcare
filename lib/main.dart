@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
 import 'screens/triage_screen.dart';
 import 'screens/best_time_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() {
   runApp(const QuickCareApp());
@@ -49,7 +50,7 @@ class _HomeShellState extends State<HomeShell> {
       const TriageScreen(),
       const Center(child: Text('Map')),
       const BestTimeScreen(),
-      const Center(child: Text('Profile')),
+      const ProfileScreen(),
     ];
 
     return Scaffold(
