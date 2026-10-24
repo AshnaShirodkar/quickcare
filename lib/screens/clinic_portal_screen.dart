@@ -1,15 +1,148 @@
 import 'package:flutter/material.dart';
+import '../logic/clinic_settings.dart';
 import '../logic/reservations.dart';
 import '../widgets/reservation_detail_sheet.dart';
+import 'clinic_settings_view.dart';
 
-class ClinicPortalScreen extends StatefulWidget {
+class ClinicPortalScreen extends StatelessWidget {
   const ClinicPortalScreen({super.key});
 
+  String _longDate(DateTime d) {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return '${days[d.weekday - 1]}, ${formatDate(d)}';
+  }
+
+  Color _staffingColor(String level) {
+    if (level == 'surge') return const Color(0xFFFF3B5C);
+    if (level == 'high') return const Color(0xFFE6A200);
+    return const Color(0xFF00A876);
+  }
+
+  Widget _header(ClinicSettings s) {
+    final staffColor = _staffingColor(s.staffing);
+
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(clinicFacilityName, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          Text(_longDate(DateTime.now()), style: const TextStyle(color: Colors.grey)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              FilterChip(
+                label: Text(s.isOpen ? 'Open' : 'Closed'),
+                selected: s.isOpen,
+                selectedColor: const Color(0xFFE6FFF5),
+                onSelected: (v) => s.update(() => s.isOpen = v),
+              ),
+              FilterChip(
+                label: Text(s.walkIns ? 'Walk-ins: Accepting' : 'Walk-ins: Paused'),
+                selected: s.walkIns,
+                selectedColor: const Color(0xFFE6FFF5),
+                onSelected: (v) => s.update(() => s.walkIns = v),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      onPressed: s.waitTime > 0 ? () => s.update(() => s.waitTime -= 1) : null,
+                      icon: const Icon(Icons.remove, size: 18),
+                    ),
+                    Text('Wait ${s.waitTime} min', style: const TextStyle(fontWeight: FontWeight.w600)),
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      onPressed: s.waitTime < 120 ? () => s.update(() => s.waitTime += 1) : null,
+                      icon: const Icon(Icons.add, size: 18),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: staffColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  s.staffingLabel,
+                  style: TextStyle(fontWeight: FontWeight.bold, color: staffColor),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
-  State<ClinicPortalScreen> createState() => _ClinicPortalScreenState();
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: clinicSettings,
+      builder: (context, _) {
+        final s = clinicSettings;
+        return DefaultTabController(
+          length: 2,
+          child: Column(
+            children: [
+              _header(s),
+              if (s.staffing == 'surge')
+                Container(
+                  width: double.infinity,
+                  color: const Color(0xFFFF3B5C),
+                  padding: const EdgeInsets.all(10),
+                  child: const Text(
+                    '⚠ SURGE MODE ACTIVE: all hands on deck',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              const Material(
+                color: Colors.white,
+                child: TabBar(
+                  tabs: [
+                    Tab(icon: Icon(Icons.checklist), text: 'Queue'),
+                    Tab(icon: Icon(Icons.settings), text: 'Settings'),
+                  ],
+                ),
+              ),
+              const Expanded(
+                child: TabBarView(
+                  children: [
+                    ClinicQueueView(),
+                    ClinicSettingsView(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
-class _ClinicPortalScreenState extends State<ClinicPortalScreen> {
+class ClinicQueueView extends StatefulWidget {
+  const ClinicQueueView({super.key});
+
+  @override
+  State<ClinicQueueView> createState() => _ClinicQueueViewState();
+}
+
+class _ClinicQueueViewState extends State<ClinicQueueView> {
   List<Reservation>? _today;
 
   @override
@@ -152,22 +285,14 @@ class _ClinicPortalScreenState extends State<ClinicPortalScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            _summary(list),
+            const SizedBox(height: 20),
             Row(
               children: [
+                const Text("Today's Queue", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'QuickMed Urgent Care',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        'Clinic dashboard · ${formatDate(DateTime.now())}',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
+                  child: Text('${list.length} reservations', style: const TextStyle(color: Colors.grey)),
                 ),
                 IconButton(
                   tooltip: 'Refresh queue',
@@ -181,16 +306,6 @@ class _ClinicPortalScreenState extends State<ClinicPortalScreen> {
                   onPressed: () => _load(reset: true),
                   child: const Text('Reset demo'),
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _summary(list),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                const Text("Today's Queue", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(width: 8),
-                Text('${list.length} reservations', style: const TextStyle(color: Colors.grey)),
               ],
             ),
             const SizedBox(height: 12),

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'logic/live_facilities.dart';
-import 'screens/home_screen.dart';
-import 'screens/triage_screen.dart';
+import 'logic/clinic_settings.dart';
 import 'screens/best_time_screen.dart';
+import 'screens/clinic_portal_screen.dart';
+import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/triage_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await clinicSettings.load();
   liveFacilities.start();
   runApp(const QuickCareApp());
 }
@@ -43,6 +47,7 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _tab = 0;
   String? _triageQuery;
+  bool _clinicMode = false;
 
   void _goTo(int tab) {
     setState(() {
@@ -58,6 +63,10 @@ class _HomeShellState extends State<HomeShell> {
     });
   }
 
+  void _toggleMode() {
+    setState(() => _clinicMode = !_clinicMode);
+  }
+
   @override
   Widget build(BuildContext context) {
     final pages = [
@@ -69,19 +78,35 @@ class _HomeShellState extends State<HomeShell> {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('QuickCare')),
-      body: pages[_tab],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: _goTo,
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.healing), label: 'Triage'),
-          NavigationDestination(icon: Icon(Icons.map), label: 'Map'),
-          NavigationDestination(icon: Icon(Icons.schedule), label: 'Best Time'),
-          NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
+      appBar: AppBar(
+        title: Text(_clinicMode ? 'QuickCare Clinic' : 'QuickCare'),
+        backgroundColor: _clinicMode ? const Color(0xFF0A1628) : null,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: TextButton.icon(
+              style: TextButton.styleFrom(foregroundColor: Colors.white),
+              onPressed: _toggleMode,
+              icon: Icon(_clinicMode ? Icons.person : Icons.local_hospital),
+              label: Text(_clinicMode ? 'Patient mode' : 'Clinic mode'),
+            ),
+          ),
         ],
       ),
+      body: _clinicMode ? const ClinicPortalScreen() : pages[_tab],
+      bottomNavigationBar: _clinicMode
+          ? null
+          : NavigationBar(
+              selectedIndex: _tab,
+              onDestinationSelected: _goTo,
+              destinations: const [
+                NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+                NavigationDestination(icon: Icon(Icons.healing), label: 'Triage'),
+                NavigationDestination(icon: Icon(Icons.map), label: 'Map'),
+                NavigationDestination(icon: Icon(Icons.schedule), label: 'Best Time'),
+                NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
+              ],
+            ),
     );
   }
 }

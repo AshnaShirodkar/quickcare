@@ -21,7 +21,7 @@ class Facility {
 
   int get totalTime => drive + wait;
 
-    Facility copyWith({int? wait}) {
+      Facility copyWith({int? wait, bool? isOpen}) {
     return Facility(
       name: name,
       type: type,
@@ -29,7 +29,7 @@ class Facility {
       drive: drive,
       wait: wait ?? this.wait,
       rating: rating,
-      isOpen: isOpen,
+      isOpen: isOpen ?? this.isOpen,
       insurance: insurance,
     );
   }

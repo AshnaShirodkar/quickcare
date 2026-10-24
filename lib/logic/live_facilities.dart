@@ -47,6 +47,14 @@ class LiveFacilities extends ChangeNotifier {
     notifyListeners();
   }
 
+    void updateFacility(String name, {int? wait, bool? isOpen}) {
+    _all = [
+      for (final f in _all) f.name == name ? f.copyWith(wait: wait, isOpen: isOpen) : f,
+    ];
+    if (wait != null) _baseWait[name] = wait;
+    _updatedAt = DateTime.now();
+    notifyListeners();
+  }
   @override
   void dispose() {
     _timer?.cancel();
