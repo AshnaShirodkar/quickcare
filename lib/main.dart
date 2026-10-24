@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'logic/live_facilities.dart';
 import 'screens/home_screen.dart';
 import 'screens/triage_screen.dart';
 import 'screens/best_time_screen.dart';
 import 'screens/profile_screen.dart';
 
 void main() {
+  liveFacilities.start();
   runApp(const QuickCareApp());
 }
 

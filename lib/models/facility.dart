@@ -21,6 +21,19 @@ class Facility {
 
   int get totalTime => drive + wait;
 
+    Facility copyWith({int? wait}) {
+    return Facility(
+      name: name,
+      type: type,
+      miles: miles,
+      drive: drive,
+      wait: wait ?? this.wait,
+      rating: rating,
+      isOpen: isOpen,
+      insurance: insurance,
+    );
+  }
+
   String get typeName {
     if (type == 'er') return 'Emergency Room';
     if (type == 'uc') return 'Urgent Care';
