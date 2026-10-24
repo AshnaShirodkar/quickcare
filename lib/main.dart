@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
- import 'screens/triage_screen.dart';
+import 'screens/triage_screen.dart';
+import 'screens/best_time_screen.dart';
 
 void main() {
   runApp(const QuickCareApp());
@@ -45,9 +46,9 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     final pages = [
       HomeScreen(onNavigate: _goTo),
-            const TriageScreen(),
+      const TriageScreen(),
       const Center(child: Text('Map')),
-      const Center(child: Text('Best Time')),
+      const BestTimeScreen(),
       const Center(child: Text('Profile')),
     ];
 
