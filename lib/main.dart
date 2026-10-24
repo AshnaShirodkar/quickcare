@@ -15,6 +15,10 @@ import 'package:flutter/material.dart';
        theme: ThemeData(
          colorSchemeSeed: const Color(0xFF0066FF),
          scaffoldBackgroundColor: const Color(0xFFF7FAFC),
+         appBarTheme: const AppBarTheme(
+         backgroundColor: Color(0xFF0066FF),
+         foregroundColor: Colors.white,
+       ), 
        ),
        home: const HomeShell(),
      );
