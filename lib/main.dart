@@ -1,67 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
- 
-  void main() {
-    runApp(const QuickCareApp());
+
+void main() {
+  runApp(const QuickCareApp());
+}
+
+class QuickCareApp extends StatelessWidget {
+  const QuickCareApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'QuickCare',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: const Color(0xFF0066FF),
+        scaffoldBackgroundColor: const Color(0xFFF7FAFC),
+        fontFamily: GoogleFonts.inter().fontFamily,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF0066FF),
+          foregroundColor: Colors.white,
+        ),
+      ),
+      home: const HomeShell(),
+    );
   }
- 
-  class QuickCareApp extends StatelessWidget {
-    const QuickCareApp({super.key});
- 
-   @override
-   Widget build(BuildContext context) {
-     return MaterialApp(
-       title: 'QuickCare',
-       debugShowCheckedModeBanner: false,
-       theme: ThemeData(
-         colorSchemeSeed: const Color(0xFF0066FF),
-         scaffoldBackgroundColor: const Color(0xFFF7FAFC),
-         fontFamily: GoogleFonts.inter().fontFamily ,
-         appBarTheme: const AppBarTheme(
-         backgroundColor: Color(0xFF0066FF),
-         foregroundColor: Colors.white,
-       ), 
-       ),
-       home: const HomeShell(),
-     );
-   }
- }
+}
 
- class HomeShell extends StatefulWidget {
-   const HomeShell({super.key});
+class HomeShell extends StatefulWidget {
+  const HomeShell({super.key});
 
-   @override
-   State<HomeShell> createState() => _HomeShellState();
- }
+  @override
+  State<HomeShell> createState() => _HomeShellState();
+}
 
- class _HomeShellState extends State<HomeShell> {
-   int _tab = 0;
+class _HomeShellState extends State<HomeShell> {
+  int _tab = 0;
 
-   final _pages = const [
-     HomeScreen(),
-     Center(child: Text('Symptom Checker')),
-     Center(child: Text('Map')),
-     Center(child: Text('Best Time')),
-     Center(child: Text('Profile')),
-   ];
+  void _goTo(int tab) => setState(() => _tab = tab);
 
-   @override
-   Widget build(BuildContext context) {
-     return Scaffold(
-       appBar: AppBar(title: const Text('QuickCare')),
-       body: _pages[_tab],
-       bottomNavigationBar: NavigationBar(
-         selectedIndex: _tab,
-         onDestinationSelected: (i) => setState(() => _tab = i),
-         destinations: const [
-           NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-           NavigationDestination(icon: Icon(Icons.healing), label: 'Triage'),
-           NavigationDestination(icon: Icon(Icons.map), label: 'Map'),
-           NavigationDestination(icon: Icon(Icons.schedule), label: 'Best Time'),
-           NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
-         ],
-       ),
-     );
-   }
- }
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      HomeScreen(onNavigate: _goTo),
+      const Center(child: Text('Symptom Checker')),
+      const Center(child: Text('Map')),
+      const Center(child: Text('Best Time')),
+      const Center(child: Text('Profile')),
+    ];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('QuickCare')),
+      body: pages[_tab],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _tab,
+        onDestinationSelected: _goTo,
+        destinations: const [
+          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.healing), label: 'Triage'),
+          NavigationDestination(icon: Icon(Icons.map), label: 'Map'),
+          NavigationDestination(icon: Icon(Icons.schedule), label: 'Best Time'),
+          NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
+        ],
+      ),
+    );
+  }
+}
