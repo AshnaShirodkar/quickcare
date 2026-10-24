@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../logic/profile_store.dart';
 import '../models/facility.dart';
 import '../widgets/facility_card.dart';
 import '../widgets/facility_detail_sheet.dart';
@@ -15,25 +16,42 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _filter = 'all';
+  String _insurance = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInsurance();
+  }
+
+  Future<void> _loadInsurance() async {
+    final profile = await ProfileStore.load();
+    if (mounted) setState(() => _insurance = profile.insurance);
+  }
 
   List<Facility> get _filtered {
     final list = sampleFacilities.where((f) {
       if (_filter == 'open') return f.isOpen;
       if (_filter == 'lowwait') return f.wait < 15;
+      if (_filter == 'innetwork') return f.acceptsInsurance(_insurance);
       return true;
     }).toList();
     list.sort((a, b) => a.totalTime.compareTo(b.totalTime));
     return list;
   }
 
+  String get _emptyMessage {
+    if (_filter == 'innetwork' && _insurance.isEmpty) {
+      return 'Pick your insurance on the Profile tab to see in-network clinics.';
+    }
+    return 'No facilities match this filter. Try a different one.';
+  }
+
   Widget _chip(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: _filter == value,
-        onSelected: (_) => setState(() => _filter = value),
-      ),
+    return ChoiceChip(
+      label: Text(label),
+      selected: _filter == value,
+      onSelected: (_) => setState(() => _filter = value),
     );
   }
 
@@ -160,21 +178,40 @@ class _HomeScreenState extends State<HomeScreen> {
           'Recommended For You',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
+        if (_insurance.isNotEmpty && _insurance != 'No Insurance')
+          Text(
+            'Checking in-network status for $_insurance',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
         const SizedBox(height: 12),
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
             _chip('All', 'all'),
             _chip('Open Now', 'open'),
             _chip('Low Wait (<15m)', 'lowwait'),
+            _chip('In-Network', 'innetwork'),
           ],
         ),
         const SizedBox(height: 12),
         if (sorted.isEmpty)
-          const Text('No facilities match this filter. Try a different one.'),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Text(
+              _emptyMessage,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ),
         for (var i = 0; i < sorted.length; i++)
           GestureDetector(
             onTap: () => showFacilityDetail(context, sorted[i]),
-            child: FacilityCard(facility: sorted[i], rank: i + 1),
+            child: FacilityCard(
+              facility: sorted[i],
+              rank: i + 1,
+              inNetwork: sorted[i].acceptsInsurance(_insurance),
+            ),
           ),
       ],
     );
