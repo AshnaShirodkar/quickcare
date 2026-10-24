@@ -199,3 +199,36 @@ TriageResult runTriage({
     showTelehealth: showTelehealth,
   );
 }
+
+const symptomKeywords = {
+  'fever': ['fever', 'temperature', 'chills'],
+  'cough': ['cough'],
+  'headache': ['headache', 'head', 'migraine'],
+  'throat': ['throat'],
+  'stomach': ['stomach', 'belly', 'abdomen', 'abdominal'],
+  'chest': ['chest'],
+  'breathing': ['breath', 'breathing', 'asthma', 'wheez'],
+  'injury': ['injury', 'cut', 'wound', 'bleeding', 'sprain', 'burn'],
+  'rash': ['rash', 'itch', 'skin', 'hives'],
+  'back': ['back'],
+  'ear': ['ear'],
+  'eye': ['eye', 'vision'],
+  'nausea': ['nausea', 'vomit', 'throwing up', 'nauseous'],
+  'allergy': ['allerg', 'swelling'],
+  'uti': ['uti', 'urinary', 'bladder'],
+  'anxiety': ['anxiety', 'anxious', 'panic'],
+};
+
+Set<String> findSymptoms(String query) {
+  final text = query.toLowerCase();
+  final found = <String>{};
+  symptomKeywords.forEach((id, words) {
+    for (final word in words) {
+      if (RegExp(r'\b' + RegExp.escape(word)).hasMatch(text)) {
+        found.add(id);
+        break;
+      }
+    }
+  });
+  return found;
+}

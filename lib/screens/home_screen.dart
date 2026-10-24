@@ -6,9 +6,10 @@ import '../widgets/facility_card.dart';
 import '../widgets/facility_detail_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
-  final void Function(int tab) onNavigate;
+    final void Function(int tab) onNavigate;
+  final void Function(String query) onSearch;
 
-  const HomeScreen({super.key, required this.onNavigate});
+  const HomeScreen({super.key, required this.onNavigate, required this.onSearch});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -16,7 +17,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _filter = 'all';
-  String _insurance = '';
+    String _insurance = '';
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -79,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 16),
-          TextField(
+          TextField(controller: _search,
             decoration: InputDecoration(
               hintText: "What's bothering you? (e.g. sore throat)",
               filled: true,
@@ -90,10 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               suffixIcon: IconButton(
                 icon: const Icon(Icons.search),
-                onPressed: () => widget.onNavigate(1),
+                onPressed: () => widget.onSearch(_search.text),
               ),
             ),
-            onSubmitted: (_) => widget.onNavigate(1),
+            onSubmitted: widget.onSearch,
           ),
         ],
       ),

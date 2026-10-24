@@ -40,14 +40,27 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _tab = 0;
+  String? _triageQuery;
 
-  void _goTo(int tab) => setState(() => _tab = tab);
+  void _goTo(int tab) {
+    setState(() {
+      _tab = tab;
+      _triageQuery = null;
+    });
+  }
+
+  void _searchSymptoms(String query) {
+    setState(() {
+      _triageQuery = query;
+      _tab = 1;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final pages = [
-      HomeScreen(onNavigate: _goTo),
-      const TriageScreen(),
+      HomeScreen(onNavigate: _goTo, onSearch: _searchSymptoms),
+      TriageScreen(initialQuery: _triageQuery),
       const Center(child: Text('Map')),
       const BestTimeScreen(),
       const ProfileScreen(),

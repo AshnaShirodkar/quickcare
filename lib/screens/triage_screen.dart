@@ -4,7 +4,9 @@ import '../models/facility.dart';
 import '../widgets/facility_detail_sheet.dart';
 
 class TriageScreen extends StatefulWidget {
-  const TriageScreen({super.key});
+  final String? initialQuery;
+
+  const TriageScreen({super.key, this.initialQuery});
 
   @override
   State<TriageScreen> createState() => _TriageScreenState();
@@ -17,7 +19,19 @@ class _TriageScreenState extends State<TriageScreen> {
   final Set<String> _flags = {};
   String? _severity;
   String? _duration;
-  TriageResult? _result;
+    TriageResult? _result;
+  String? _searchNote;
+
+  @override
+  void initState() {
+    super.initState();
+    final query = widget.initialQuery?.trim() ?? '';
+    if (query.isEmpty) return;
+    _symptoms.addAll(findSymptoms(query));
+    _searchNote = _symptoms.isEmpty
+        ? 'We couldn’t match “$query” to a symptom. Pick from the list below.'
+        : 'Based on “$query”, we picked the matching symptoms below. Add or remove any.';
+  }
 
   void _warn(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -62,7 +76,8 @@ class _TriageScreenState extends State<TriageScreen> {
       _severity = null;
       _duration = null;
       _result = null;
-    });
+      _searchNote = null;
+          });
   }
 
   Widget _dots() {
@@ -110,7 +125,17 @@ class _TriageScreenState extends State<TriageScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _question('What symptoms are you experiencing?'),
-        Wrap(
+        if (_searchNote != null)
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE6F0FF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(_searchNote!),
+          ),       
+           Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
