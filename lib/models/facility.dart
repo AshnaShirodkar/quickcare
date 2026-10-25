@@ -7,6 +7,8 @@ class Facility {
   final double rating;
   final bool isOpen;
   final List<String> insurance;
+  final double? lat;
+  final double? lng;
 
   const Facility({
     required this.name,
@@ -17,6 +19,8 @@ class Facility {
     required this.rating,
     required this.isOpen,
     this.insurance = const [],
+    this.lat,
+    this.lng,
   });
 
   int get totalTime => drive + wait;
@@ -31,6 +35,8 @@ class Facility {
       rating: rating,
       isOpen: isOpen ?? this.isOpen,
       insurance: insurance,
+      lat: lat,
+      lng: lng,
     );
   }
 
@@ -65,6 +71,8 @@ const sampleFacilities = [
     rating: 4.1,
     isOpen: true,
     insurance: ['BCBS', 'Aetna', 'UHC', 'Cigna', 'Medicare', 'Medicaid'],
+    lat: 36.108,
+    lng: -115.1859,
   ),
   Facility(
     name: 'QuickMed Urgent Care',
@@ -75,6 +83,8 @@ const sampleFacilities = [
     rating: 4.6,
     isOpen: true,
     insurance: ['BCBS', 'Aetna', 'UHC', 'Cigna', 'Humana'],
+    lat: 36.1239,
+    lng: -115.143,
   ),
   Facility(
     name: 'Lakeside Family Clinic',
@@ -85,6 +95,8 @@ const sampleFacilities = [
     rating: 4.3,
     isOpen: false,
     insurance: ['BCBS', 'Aetna', 'Cigna'],
+    lat: 36.0773,
+    lng: -115.1051,
   ),
   Facility(
     name: 'Sunrise Urgent Care',
@@ -95,5 +107,7 @@ const sampleFacilities = [
     rating: 4.4,
     isOpen: true,
     insurance: ['UHC', 'Cigna', 'Humana', 'Kaiser'],
+    lat: 36.151,
+    lng: -115.0899,
   ),
 ];

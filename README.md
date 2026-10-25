@@ -50,6 +50,25 @@ lib/
 legacy-web/              Original single-page web app
 ```
 
+## Google Maps setup
+
+The Map tab uses Google Maps. The key lives in one git-ignored file, `.env`, in the project root:
+
+```
+cp .env.example .env
+# then open .env and paste your key:  MAPS_API_KEY=AIza...
+```
+
+iOS and Android read `.env` automatically during the build. For web, pass it to Flutter:
+
+```
+flutter run -d chrome --dart-define-from-file=.env
+```
+
+In Google Cloud, enable **Maps SDK for iOS**, **Maps SDK for Android**, and **Maps JavaScript API**, and restrict the key to bundle ID / package `com.quickcare.quickcare` (and your web domain).
+
+Google Maps does not support macOS, so the macOS app shows the clinic list instead of a map. Use the iPhone simulator, an Android emulator, or Chrome to see the map.
+
 ## Coming next
 
-Real nearby clinics and the Map tab using Google Maps Platform. API keys will be kept out of the repository (see `.gitignore`).
+Real nearby clinics from Google Places (clinic locations on the map are demo coordinates for now).

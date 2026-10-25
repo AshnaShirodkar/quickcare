@@ -1,3 +1,11 @@
+import java.util.Properties
+
+// Google Maps key lives in the project-root .env file (git-ignored): MAPS_API_KEY=...
+val quickcareEnv = Properties().apply {
+    val envFile = rootProject.file("../.env")
+    if (envFile.exists()) envFile.inputStream().use { load(it) }
+}
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -27,6 +35,7 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["MAPS_API_KEY"] = quickcareEnv.getProperty("MAPS_API_KEY", "")
     }
 
     buildTypes {

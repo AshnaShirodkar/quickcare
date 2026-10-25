@@ -5,6 +5,7 @@ import 'logic/clinic_settings.dart';
 import 'screens/best_time_screen.dart';
 import 'screens/clinic_portal_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/map_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/triage_screen.dart';
 
@@ -72,7 +73,7 @@ class _HomeShellState extends State<HomeShell> {
     final pages = [
       HomeScreen(onNavigate: _goTo, onSearch: _searchSymptoms),
       TriageScreen(initialQuery: _triageQuery),
-      const Center(child: Text('Map')),
+      const MapScreen(),
       const BestTimeScreen(),
       const ProfileScreen(),
     ];
