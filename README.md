@@ -1,16 +1,74 @@
 # QuickCare
 
-Static HTML application. One embedded Google Maps browser API key was removed from index.html. No other obvious credentials were found in the supplied HTML; this is not a guarantee against all secret formats.
+Find the fastest path to care. QuickCare compares nearby clinics by **total time** (drive + wait), guides you through a symptom check, predicts the best time to go, and lets you reserve a spot. A built-in **Clinic Portal** lets staff manage the queue, settings, and analytics.
 
-## Local setup
-Copy config.example.js to config.js and set googleMapsApiKey to a restricted Google Maps browser key. Serve this directory with `python3 -m http.server 8000`.
+This branch rebuilds the original web app as a **native Flutter app** for macOS, iOS, and Android. The original web version is kept in [`legacy-web/`](legacy-web/).
 
-config.js is ignored by Git. Never put the real key in .gitignore itself. The downloadable ZIP deliberately excludes config.js and contains no real key.
+## Features
 
-## Deployment
-Publish index.html and provide config.js in the hosted output. For GitHub Pages, generate config.js during a deployment workflow using a repository secret named GOOGLE_MAPS_API_KEY; never commit the generated file. Maps, address lookup, and facility search require this configuration. A plain checkout deployed without configuration will not support these features.
+**Patient side**
+- Home: clinics ranked by total time, live wait updates, scrolling ticker, filters (Open Now, Low Wait, In-Network)
+- Symptom Checker: 5-step triage with escalation rules, recommended facility, navigate/reserve/share
+- Best Time to Go: hourly wait predictions by clinic and day
+- Profile: insurance, pharmacy, allergies, care preference, dependents (saved on device)
+- Reserve a Spot, My Reservations, Telehealth waiting room (demo)
+- Dark mode, smart symptom search
 
-A browser API key remains visible in deployed JavaScript and network requests, even when sourced from GitHub Secrets. Restrict it to the exact website HTTP referrers and only the required Google Maps APIs in Google Cloud. Rotate the previously embedded key if it was publicly shared or unrestricted. Fully private keys require a backend, which this static application does not include.
+**Clinic Portal** (top-right "Clinic mode" button)
+- Queue: move patients Pending → Confirmed → Arrived → In Room → Completed, notes, timeline
+- Locations: multi-location capacity overview
+- Analytics: reservations by hour, visit reasons, insurance mix, weekly trend, funnel
+- Settings: open/closed, walk-ins, posted wait time, services, staffing and surge mode
 
-## Scope of review
-Reviewed the supplied HTML, including inline JavaScript, external URLs, and common credential patterns. No existing Git history or Google Cloud key restrictions were available to inspect. Existing application behavior was preserved; this was not a full functional or clinical-data review.
+## Data
+
+Clinic data is **sample data** for now. Wait times are estimates, demo patients are added to the clinic queue each day, and anything marked "Demo" or "Est." is not real. Profile and reservations are stored only on the device.
+
+QuickCare is not a medical diagnostic tool. In an emergency, call 911.
+
+## Running it
+
+1. Install [Flutter](https://docs.flutter.dev/get-started/install) and run `flutter doctor`.
+2. From this folder:
+   ```
+   flutter pub get
+   flutter run
+   ```
+3. Pick **macOS** (or an iPhone simulator / Android emulator).
+
+On macOS, if a build fails with "resource fork, Finder information, or similar detritus not allowed," run `xattr -cr .` and try again.
+
+## Project layout
+
+```
+lib/
+  main.dart              App start, themes, tabs, Patient/Clinic mode
+  models/                Facility
+  logic/                 Triage rules, predictions, storage, live updates, clinic settings
+  screens/               Home, Triage, Best Time, Profile, Clinic Portal tabs
+  widgets/               Cards, sheets, charts, ticker
+legacy-web/              Original single-page web app
+```
+
+## Google Maps setup
+
+The Map tab uses Google Maps. The key lives in one git-ignored file, `.env`, in the project root:
+
+```
+cp .env.example .env
+# then open .env and paste your key:  MAPS_API_KEY=AIza...
+```
+
+iOS and Android read `.env` automatically during the build. For web, pass it to Flutter:
+
+```
+flutter run -d chrome --dart-define-from-file=.env
+```
+
+In Google Cloud, enable **Maps SDK for iOS**, **Maps SDK for Android**, and **Maps JavaScript API**, and restrict the key to bundle ID / package `com.quickcare.quickcare` (and your web domain).
+
+Google Maps does not support macOS, so the macOS app shows the clinic list instead of a map. Use the iPhone simulator, an Android emulator, or Chrome to see the map.
+
+## Coming next
+
+Real nearby clinics from Google Places (clinic locations on the map are demo coordinates for now).

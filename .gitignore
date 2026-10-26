@@ -5,3 +5,10 @@ config.js
 *.pem
 *.key
 .DS_Store
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.idea/
+*.iml
+ios/Flutter/Secrets.xcconfig
